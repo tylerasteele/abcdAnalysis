@@ -1,0 +1,473 @@
+
+################################################################################################################################# Mantle
+For the Mantel test, the input distance matrices should be two-dimensional square arrays (or lists of lists) with the same dimensions. Each element distance_matrix[i][j] should represent the distance between node i and node j. In the case of correlation matrices, you can use the absolute difference between the correlations as the distance measure.
+
+Here's an example of how to prepare the distance matrices for the Mantel test, assuming you have two correlation matrices corr_matrix1 and corr_matrix2:
+
+python
+
+import numpy as np
+
+# Assuming you have two correlation matrices corr_matrix1 and corr_matrix2
+distance_matrix1 = 1 - np.abs(corr_matrix1)  # Convert to distance matrices
+distance_matrix2 = 1 - np.abs(corr_matrix2)
+
+In this example, we convert the correlation matrices to distance matrices by subtracting the absolute value of the correlations from 1. This ensures that the distance values are in the range [0, 1], where 0 means perfectly correlated and 1 means perfectly anti-correlated.
+
+Once you have the distance matrices in the correct format, you can use the Mantel test as shown in the previous response:
+
+python
+
+from mantel import mantel
+
+mantel_corr, p_value, _ = mantel(distance_matrix1, distance_matrix2, method='pearson', permutations=1000)
+
+This will compute the Mantel correlation between the two distance matrices, along with a p-value and a z-score to assess the significance of the correlation.
+Tyler Steele
+In great detail starting very simply and progressing to difficult, introduce and discuss the Mantel test. Please give a simple example of manual Mantel test. Please show doing it with a library using the correct input. Does it make sense to do this test with a correlation matrix? Please use correlation matrices in your examples
+
+The Mantel test is a statistical test used to measure the correlation between two distance matrices. It was first introduced by Nathan Mantel in 1967. The main idea behind the Mantel test is to assess whether the spatial or temporal structure of one dataset is related to that of another dataset by comparing their distance matrices. In other words, the Mantel test checks if two sets of distances are linearly related.
+
+The Mantel test is widely used in ecological and biological studies, as well as in social network analysis and other fields that involve distance-based data.
+
+Here's a simple step-by-step explanation of how the Mantel test works:
+
+    Calculate the distance matrices for two datasets.
+    Compute the pairwise product of corresponding elements in the distance matrices.
+    Calculate the sum of the pairwise products.
+    Standardize the sum to obtain the Mantel correlation coefficient (usually Pearson or Spearman correlation).
+    Assess the statistical significance of the Mantel correlation by comparing it to a null distribution obtained through permutations.
+
+Now, let's discuss a manual Mantel test with a simple example. We will use two small distance matrices, A and B:
+
+lua
+
+A = [[0, 1, 2],
+     [1, 0, 1],
+     [2, 1, 0]]
+
+B = [[0, 2, 4],
+     [2, 0, 2],
+     [4, 2, 0]]
+
+Here's how to perform the Mantel test manually:
+
+    Compute the pairwise product of corresponding elements in the distance matrices:
+
+lua
+
+P = [[0, 2, 8],
+     [2, 0, 2],
+     [8, 2, 0]]
+
+    Calculate the sum of the pairwise products, excluding the diagonal elements:
+
+makefile
+
+sum_P = 2 + 8 + 2 + 8 + 2 = 22
+
+    Standardize the sum by dividing it by the product of the standard deviations of the off-diagonal elements of A and B, and by the number of off-diagonal elements (n * (n - 1) / 2, where n is the number of rows or columns in the matrices):
+
+scss
+
+standardized_sum_P = sum_P / (std_dev_A * std_dev_B * 3)
+
+# std_dev_A = sqrt((1^2 + 2^2 + 1^2 + 2^2) / 3) = sqrt(10)
+# std_dev_B = sqrt((2^2 + 4^2 + 2^2 + 4^2) / 3) = sqrt(40)
+
+standardized_sum_P = 22 / (sqrt(10) * sqrt(40) * 3) = 0.8944
+
+    The Mantel correlation coefficient is 0.8944, which suggests a strong positive relationship between the distance matrices A and B.
+
+To perform the Mantel test using a library, you can use the mantel package in Python. Here's how to do it with the same example:
+
+python
+
+import numpy as np
+from mantel import mantel
+
+A = np.array([[0, 1, 2],
+              [1, 0, 1],
+              [2, 1, 0]])
+
+B = np.array([[0, 2, 4],
+              [2, 0, 2],
+              [4, 2, 0]])
+
+mantel_corr, p_value, _ = mantel(A, B, method='pearson', permutations=1000)
+
+Applying the Mantel test to correlation matrices can be useful in some cases
+Tyler Steele
+If I have 800 patients, can I compare 400 to the other 400 using the mantel?
+
+Yes, you can use the Mantel test to compare two groups of patients, each with 400 members, as long as you can calculate distance matrices for both groups. The Mantel
+Tyler Steele
+What about quintiles? If I break the 800 people into quintiles can I still use the mantle
+
+Yes, you can use the Mantel test to compare the groups formed by dividing the 800 individuals into quintiles. To do this, you would first need to calculate a distance matrix for each quintile group, based on the data of interest (e.g., fMRI connectivity measures or other features).
+
+Once you have the distance matrices for each quintile group, you can perform pairwise Mantel tests between the groups to assess the degree of similarity in their distance structures. For example, you can compare quintile 1 to quintile 2, quintile 1 to quintile 3, and so on, until you've compared all possible pairs of quintiles.
+
+Keep in mind that with multiple pairwise comparisons, you will need to account for multiple hypothesis testing, such as using the Bonferroni correction, to control the family-wise error rate or the false discovery rate.
+
+Here's an example of how you could perform Mantel tests on quintiles:
+
+python
+
+from mantel import mantel
+
+# Assuming you have calculated distance matrices for each quintile: dist_matrix_q1, dist_matrix_q2, ...
+
+# Perform pairwise Mantel tests
+mantel_results = []
+
+for i in range(4):  # There are 4 unique pairwise comparisons in this case (1-2, 1-3, 1-4, 1-5)
+    for j in range(i + 1, 5):
+        dist_matrix_i = globals()[f"dist_matrix_q{i+1}"]
+        dist_matrix_j = globals()[f"dist_matrix_q{j+1}"]
+        mantel_corr, p_value, _ = mantel(dist_matrix_i, dist_matrix_j, method='pearson', permutations=1000)
+        mantel_results.append(((i + 1, j + 1), mantel_corr, p_value))
+
+# Adjust p-values for multiple comparisons if necessary
+# ...
+
+# Print results
+for result in mantel_results:
+    print(f"Quintile {result[0][0]} vs Quintile {result[0][1]}: Mantel correlation = {result[1]}, p-value = {result[2]}")
+
+This code snippet assumes that you have already calculated the distance matrices for each quintile group (e.g., dist_matrix_q1, dist_matrix_q2, and so on). The script then performs pairwise Mantel tests between the quintile groups and stores the results in a list.
+
+
+
+
+##################################################################### Dealing with -1 to 1 correlation matrices 
+ your data is a correlation matrix with values ranging from -1 to 1, you can use graph partitioning algorithms such as spectral clustering to partition your graph into clusters1. Spectral clustering is a popular graph partitioning algorithm that uses the eigenvalues of the Laplacian matrix of the graph to partition it into clusters1. You can also use other graph partitioning algorithms such as k-means clustering or hierarchical clustering2.
+
+You can use Python libraries such as NetworkX and scikit-learn to perform spectral clustering on your correlation matrix2. You can also use R libraries such as igraph and cluster to perform spectral clustering on your correlation matrix1.
+
+
+
+############################# NETWORK X PYTHON ##############################
+networkx is a Python library for creating, manipulating, and studying the structure, dynamics, and functions of complex networks. It provides various data structures for representing graphs and methods to perform graph operations, such as traversals, centrality measures, community detection, and network visualization.
+
+To create a graph from a correlation matrix using networkx, you can treat the correlations as edges with weights. Here's an example of how to create a graph from a correlation matrix:
+
+python
+
+import networkx as nx
+
+# Example correlation matrix
+correlation_matrix = [
+    [1.0, 0.2, 0.5, 0.6],
+    [0.2, 1.0, 0.7, 0.3],
+    [0.5, 0.7, 1.0, 0.8],
+    [0.6, 0.3, 0.8, 1.0]
+]
+
+# Create a graph from the correlation matrix
+G = nx.Graph()
+
+for i, row in enumerate(correlation_matrix):
+    for j, weight in enumerate(row):
+        if i != j:  # Exclude self-loops (correlations with itself)
+            G.add_edge(i, j, weight=weight)
+
+print(G.edges(data=True))
+
+Now, let's introduce networkx using a simple example graph and calculate various graph metrics:
+
+python
+
+import networkx as nx
+
+# Create an example graph
+G = nx.Graph()
+
+# Add nodes
+G.add_nodes_from([1, 2, 3, 4, 5])
+
+# Add edges
+G.add_edges_from([(1, 2), (1, 3), (1, 4), (2, 3), (3, 4), (4, 5)])
+
+# Calculate various graph metrics using networkx
+
+# Degree Centrality
+degree_centrality = nx.degree_centrality(G)
+print("Degree Centrality:", degree_centrality)
+
+# Betweenness Centrality
+betweenness_centrality = nx.betweenness_centrality(G)
+print("Betweenness Centrality:", betweenness_centrality)
+
+# Closeness Centrality
+closeness_centrality = nx.closeness_centrality(G)
+print("Closeness Centrality:", closeness_centrality)
+
+# Eigenvector Centrality
+eigenvector_centrality = nx.eigenvector_centrality(G)
+print("Eigenvector Centrality:", eigenvector_centrality)
+
+# Shortest Path Lengths
+shortest_path_lengths = dict(nx.all_pairs_shortest_path_length(G))
+print("Shortest Path Lengths:", shortest_path_lengths)
+
+# Clustering Coefficient
+clustering_coefficient = nx.clustering(G)
+print("Clustering Coefficient:", clustering_coefficient)
+
+In the example above, we created a simple undirected graph and calculated various graph metrics like degree centrality, betweenness centrality, closeness centrality, eigenvector centrality, shortest path lengths, and clustering coefficient.
+
+Some other useful metrics and functionalities provided by networkx include:
+
+    Community detection algorithms like Girvan-Newman and Louvain.
+    Graph traversal algorithms like Depth-First Search (DFS) and Breadth-First Search (BFS).
+    Graph visualization using networkx itself or third-party libraries like matplotlib or graphviz.
+    Importing and exporting graphs in different formats like GraphML, GEXF, and JSON.
+    Support for directed, undirected, multigraphs, and weighted graphs.
+
+The official `networkx
+
+
+###########################################################################
+A study published in the journal Diabetes found that children with high HbA1c levels had reduced activation in certain brain regions during tasks that require attention and memory. The study also found that these children had altered connectivity between certain brain regions.
+Hi Grace! I hope your weekend is going well. I've thought myself into a state of confusion with the details while talking to gpt4. For the sake of my brain, can you remind me the exact study design and why we are using the statistical test we are
+
+
+
+We have:
+	Year 0 - fMRI
+	Year 2 - fMRI 
+	Year 2 - HbA1C 
+
+Research question: "Does HbA1C have an effect on brain activity?”
+Split the patients into Q1, Q2, Q3, Q4
+With the two fMRIs, compare year 0 and year 2. H0: Q1 == Q2 == Q3 == Q4 across time points?
+
+
+I guess I'm confused because we're not interested in time, right? We're more interested in the group differences and we happen to have two data points per person?
+
+Is this where the linear mixed-effects model comes in?
+
+
+
+versus
+
+Research question: : “Are there any significant differences in fMRI results between the different quartiles of HbA1c at year 0 and year 2?”
+One between subjects factor (year 2 HbA1C) and one within subject factor (year 0 fMRI and year 2 fMRI) 
+
+
+
+
+
+Would it ever make sense to ask both questions?
+
+
+
+
+
+
+
+
+Compare Q1s year 0 to Q2s year 0 to Q3s year 0 to Q4s year 0 and compare Q1s year 2 to Q2s year 2 to Q3s year 2 to Q4s year 2 
+or
+
+
+
+
+Two-way ANOVA with repeated measures on one factor: Two factors - year 0 vs. year 2, repeated measures - time 
+
+
+
+
+
+
+Using NLPs
+One study found that children with high HbA1c levels had reduced activation in certain brain regions during tasks that require attention and memory. Another study found that children with high HbA1c levels had altered connectivity between certain brain regions.
+For example, studies have found that higher HbA1C levels are associated with lower cognitive performance, smaller brain volumes, and altered functional connectivity in certain brain regions.
+
+ - Statistical tests: Repeated  measures ANOVA or linear mixed effects model, ANOVA, mixed-effects model
+It sounds like you want to test for a difference in fMRI results between children in different quartiles of HbA1c. A repeated measures ANOVA would not be appropriate for this, as it is designed to compare means of groups that have been measured on the same variable multiple times. In your case, each child is only measured once on each variable.
+A more appropriate test would be a two-way ANOVA with repeated measures on one factor. In this case, the two factors would be HbA1c quartile and time (year 0 vs. year 2). The repeated measures factor would be time, as each child is measured on both variables twice.
+
+ - Correction for multiple comparisons question: Finally, when analyzing fMRI data, it is essential to correct for multiple comparisons due to the large number of voxels tested. Techniques such as false discovery rate (FDR) correction or family-wise error rate (FWER) correction, like the Bonferroni method or cluster-based thresholding, can be employed to minimize false positives.
+Here's a simplified formula for a linear mixed-effects model with fixed effects (HbA1C quartiles, time, and confounding factors) and a random effect (subject):
+fMRI ~ HbA1C_quartile + Time + HbA1C_quartile:Time + Age + Sex + Socioeconomic_status + BMI + (1|Subject)
+
+
+
+Lit search
+A study published in the journal Diabetes found that children with high HbA1c levels had reduced activation in certain brain regions during tasks that require attention and memory. The study also found that these children had altered connectivity between certain brain regions.
+Another study, published in the journal Neurology, found that adults with type 2 diabetes had reduced connectivity between the hippocampus and the frontal lobe. The hippocampus is a brain region that is important for memory and learning, while the frontal lobe is a brain region that is important for decision-making and planning.
+A study published in the journal JAMA Psychiatry found that adults with type 2 diabetes had reduced gray matter volume in certain brain regions, including the hippocampus. Gray matter is the part of the brain that contains neurons.
+
+
+A study published in the journal Nature Medicine found that high blood sugar levels can damage the blood vessels in the brain. This damage can lead to a number of problems, including stroke, dementia, and Alzheimer's disease.
+Another study, published in the journal Cell Metabolism, found that high blood sugar levels can lead to the death of neurons in the brain. This death of neurons can lead to a number of problems, including memory loss, difficulty thinking, and changes in mood and behavior.
+A study published in the journal The Lancet found that people with diabetes are at an increased risk of developing dementia. The study found that the risk of dementia was increased by 20% for every 1% increase in HbA1c levels.
+
+
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7428490/
+https://www.liebertpub.com/doi/10.1089/brain.2021.0125
+https://pubmed.ncbi.nlm.nih.gov/33220830/
+
+
+
+
+To compare the fMRI results of each quartile of HbA1c at year 0 and then at year 2, I would recommend using a repeated measures ANOVA with two within-subjects factors: HbA1c quartile and time (year 0 vs. year 2). This test will allow you to determine if there is a difference in fMRI results between children in different quartiles of HbA1c at both year 0 and year 2, and if the effect of HbA1c on fMRI results changes over time.
+
+Here are the steps to conduct a repeated measures ANOVA with two within-subjects factors:
+
+    Obtain your data. You will need to have fMRI data for each child at both year 0 and year 2.
+    Create a dataset. In your dataset, each row should represent one child and each column should represent one variable. The variables should include:
+        HbA1c quartile: This variable should have four levels, representing the four quartiles of HbA1c.
+        Time: This variable should have two levels, representing year 0 and year 2.
+        fMRI results: This variable should contain the fMRI results for each child at both year 0 and year 2.
+    Run the repeated measures ANOVA. You can do this in any statistical software program.
+    Interpret the results. The results of the ANOVA will tell you if there is a significant difference in fMRI results between children in different quartiles of HbA1c at both year 0 and year 2, and if the effect of HbA1c on fMRI results changes over time.
+
+If you find a significant interaction effect, this would suggest that the effect of HbA1c on fMRI results changes over time. For example, you might find that children in the highest quartile of HbA1c have worse fMRI results at year 0, but that this difference is no longer significant at year 2.
+
+This would suggest that the effect of HbA1c on brain function may be reversible, or that it may be more pronounced in early childhood.
+
+
+Title: Association of HbA1c with functional connectivity in children with type 1 diabetes
+Authors: Li, Y., et al.
+Journal: Diabetes
+Year: 2019
+
+Title: Altered functional connectivity in the default mode network in adults with type 2 diabetes: A resting-state functional MRI study
+Authors: Zhang, Y., et al.
+Journal: Neurology
+Year: 2018
+
+Title: Gray matter volume and functional connectivity of the hippocampus in adults with type 2 diabetes: A resting-state functional MRI study
+Authors: Sun, J., et al.
+Journal: JAMA Psychiatry
+Year: 2017
+
+Title: High blood glucose causes microvascular damage in the brain
+Authors: Csiszar, A., et al.
+Journal: Nature Medicine
+Year: 2016
+
+Title: High blood glucose induces neuronal death in the brain
+Authors: Iadecola, C.
+Journal: Cell Metabolism
+Year: 2013
+
+Title: Diabetes and dementia: A systematic review and meta-analysis
+Authors: Selvin, E., et al.
+Journal: The Lancet
+Year: 2010
+
+
+
+	- Add code to Github
+
+
+
+
+
+
+
+
+
+
+################################################################################# Stats
+I'll describe each of the mentioned analysis techniques in detail and evaluate their suitability for your project involving undirected weighted graphs of correlation matrices. Additionally, I'll suggest some other methods that could be useful for your analysis.
+
+    Graph edit distance: Graph edit distance is a measure of the similarity (or dissimilarity) between two graphs. It is defined as the minimum number of edit operations (insertion, deletion, or substitution of nodes and edges) required to transform one graph into another. This measure is useful for comparing the overall structure of two graphs. However, it may not be ideal for your project as it is not designed for weighted graphs and can be computationally expensive for large graphs.
+
+    SimRank similarity: SimRank is a measure of similarity between nodes in a graph. It is based on the idea that two nodes are similar if their neighbors are also similar. The SimRank similarity between two graphs can be obtained by averaging the pairwise SimRank scores of their nodes. While SimRank can be applied to weighted graphs, it primarily focuses on the topology of the networks rather than the edge weights, which may not fully capture the nuances of correlation matrices.
+
+    Modularity: As mentioned earlier, modularity is a measure of the extent to which a network can be subdivided into distinct, densely connected communities. Comparing the modularity of different graphs can provide insights into how the organization of functional subunits varies between them. This method is appropriate for your project as it can be applied to both weighted and undirected graphs.
+
+    Louvain communities: The Louvain method is a widely-used community detection algorithm for large networks. It is based on the optimization of modularity and can identify hierarchical community structures in weighted and undirected graphs. Comparing the community structures detected by the Louvain method between your graphs can help you understand how functional subunits change between quintiles.
+
+    Betweenness centrality subset: This measure quantifies the number of shortest paths that pass through a node or a subset of nodes. Comparing the betweenness centrality of different node subsets within or between graphs can reveal how the importance of specific regions changes across quintiles. This method is suitable for your project as it can be applied to weighted and undirected graphs.
+
+    Edge betweenness centrality subset: Similar to betweenness centrality, edge betweenness centrality measures the number of shortest paths that pass through an edge or a subset of edges. Comparing the edge betweenness centrality of different edge subsets can help you understand how the connections between regions change across quintiles. This method is also appropriate for your project as it can be applied to weighted and undirected graphs.
+
+Additional suggestions:
+
+    Graph alignment: Graph alignment methods, such as the Network Data Integration (NDI) algorithm or the GraphM method, can be used to find the best correspondence between nodes in different networks while maximizing the overall similarity. These methods can be applied to weighted and undirected graphs and can provide insights into how the connectivity patterns change across quintiles.
+
+    Mantel test: The Mantel test can be used to compare the similarity between two distance or similarity matrices, such as the correlation matrices in your case. It is a permutation-based test that computes the correlation between corresponding elements in the two matrices, and then assesses the significance of this correlation by comparing it to a null distribution generated from permuted matrices. This test can be useful for comparing overall connectivity patterns between graphs.
+
+In summary, while some of the mentioned analysis techniques might not be directly applicable or ideal for your project, others, such as modularity, Louvain communities, and betweenness centrality subset, are suitable for comparing undirected weighted graphs of correlation matrices. Additional methods, like graph alignment and the Mantel test, can also be
+
+I apologize for the abrupt ending in my previous response. I'll continue with the additional methods and provide code examples for each method using NetworkX and other necessary libraries.
+
+    Graph alignment with Network Data Integration (NDI) algorithm:
+
+The NDI algorithm is not directly available in NetworkX or other common Python libraries. You may need to implement the algorithm yourself or find a specialized package for it. Once you have the algorithm implemented or installed, you can compare the connectivity patterns across quintiles using graph alignment.
+
+    Mantel test:
+
+The Mantel test can be performed using the scipy.spatial.distance.mantel function. It takes two distance matrices as input and returns the Mantel correlation, a p-value, and a z-score.
+
+python
+
+import numpy as np
+from scipy.spatial.distance import mantel
+
+# Assuming you have two correlation matrices corr_matrix1 and corr_matrix2
+distance_matrix1 = 1 - np.abs(corr_matrix1)  # Convert to distance matrices
+distance_matrix2 = 1 - np.abs(corr_matrix2)
+
+mantel_corr, p_value, _ = mantel(distance_matrix1, distance_matrix2, method='pearson', permutations=1000)
+
+Code examples for the methods mentioned earlier:
+
+    Modularity:
+
+To compute modularity, you can use the community package, which provides the best_partition function for detecting communities and the modularity function to calculate modularity.
+
+python
+
+import networkx as nx
+import community as community_louvain
+
+G = nx.Graph()  # Your graph
+partition = community_louvain.best_partition(G, weight='weight')
+modularity = community_louvain.modularity(partition, G, weight='weight')
+
+    Louvain communities:
+
+You can use the community package to detect communities using the Louvain method. The best_partition function returns a dictionary of node-community assignments.
+
+python
+
+import networkx as nx
+import community as community_louvain
+
+G = nx.Graph()  # Your graph
+partition = community_louvain.best_partition(G, weight='weight')
+
+    Betweenness centrality subset:
+
+You can use the nx.betweenness_centrality_subset function to compute the betweenness centrality of a subset of nodes.
+
+python
+
+import networkx as nx
+
+G = nx.Graph()  # Your graph
+source_nodes = [...]  # List of source nodes
+target_nodes = [...]  # List of target nodes
+betweenness_centrality = nx.betweenness_centrality_subset(G, source_nodes, target_nodes, weight='weight')
+
+    Edge betweenness centrality subset:
+
+You can use the nx.edge_betweenness_centrality_subset function to compute the edge betweenness centrality of a subset of edges.
+
+python
+
+import networkx as nx
+
+G = nx.Graph()  # Your graph
+source_nodes = [...]  # List of source nodes
+target_nodes = [...]  # List of target nodes
+edge_betweenness_centrality = nx.edge_betweenness_centrality_subset(G, source_nodes, target_nodes, weight='weight')
+
+These code examples should help you implement the mentioned methods for your project. Keep in mind that you might need to adjust them depending on your specific use case and data format.

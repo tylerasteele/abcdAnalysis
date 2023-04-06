@@ -1,0 +1,167 @@
+3.meetingwithgrace.23
+
+ - Repeated measures anova
+
+
+List of libraries
+ - pip3 install python-louvain
+
+
+4.2.23
+ - Did some research into HbA1C generally:
+	- What about medications that alter HbA1C
+	- We don't know HbA1C at t0, what if they are on a diabetes medication?
+	- Lifespan of red blood cells ~120 days, so measuring glycated hemoglobin is an average of blood sugar over the last 2-3 months
+	  versus blood sugar which is at the moment. Do we have blood sugar measurements?
+	- Is there any reason to also measure hemoglobin? Or integrate this somehow in analysis
+
+
+
+ - Questions: Lab meeting
+	- Do everything as we said, quartiles, then do subset analysis on ~30 patients with x >= 5.7%?
+
+
+
+A study published in the journal Diabetes found that children with high HbA1c levels had reduced activation in certain brain regions during tasks that require attention and memory. The study also found that these children had altered connectivity between certain brain regions.
+Hi Grace! I hope your weekend is going well. I've thought myself into a state of confusion with the details while talking to gpt4. For the sake of my brain, can you remind me the exact study design and why we are using the statistical test we are
+
+
+
+We have:
+	Year 0 - fMRI
+	Year 2 - fMRI 
+	Year 2 - HbA1C 
+
+Research question: "Does HbA1C have an effect on brain activity?”
+Split the patients into Q1, Q2, Q3, Q4
+With the two fMRIs, compare year 0 and year 2. H0: Q1 == Q2 == Q3 == Q4 across time points?
+
+
+I guess I'm confused because we're not interested in time, right? We're more interested in the group differences and we happen to have two data points per person?
+
+Is this where the linear mixed-effects model comes in?
+
+
+
+versus
+
+Research question: : “Are there any significant differences in fMRI results between the different quartiles of HbA1c at year 0 and year 2?”
+One between subjects factor (year 2 HbA1C) and one within subject factor (year 0 fMRI and year 2 fMRI) 
+
+Would it ever make sense to ask both questions?
+Compare Q1s year 0 to Q2s year 0 to Q3s year 0 to Q4s year 0 and compare Q1s year 2 to Q2s year 2 to Q3s year 2 to Q4s year 2 
+or Two-way ANOVA with repeated measures on one factor: Two factors - year 0 vs. year 2, repeated measures - time 
+
+4.3.23: Lab Meeting and Questions
+
+
+Update:
+ - Pickle files rock, and they're great for runtime too
+ - 25 minutes to ~15 seconds with various improvements
+ - Incorporating hba1c now
+ - networkX/graphs
+
+Questions:
+ - Stats and linear mixed effects modeling with R using rpy2's FFI
+ - Tertiles, quartiles, quintiles, sextiles, septiles:
+	- HbA1C values: 5.0, 5.3  |  5.0, 5.1, 5.3  |  4.9, 5.1, 5.2, 5.4  |  4.9, 5.0, 5.1, 5.3, 5.4  |  4.9, 5.0, 5.1, 5.2, 5.3, 5.4
+	- Patients per group (W/o filtering for 2 studies (doesn't decreage much))
+		:    348, 423, 207    |    224, 124, 288, 342    |    342, 224, 277, 135, 221, 121    |    224, 124, 153, 270, 86, 121    |    224, 124, 153, 135, 135, 86, 121
+ - Thoughts for later: Subset analysis of x >= 5.7% pts, analysis of all 2 year blood work 2 year scan rather than only those with two (one scan: 978, two scan: 836)
+
+
+To Do:
+	- Add code to Github
+
+
+
+
+
+4.4.23
+Questions for next meet 
+	 - Using meaningful graph metrics. degreeCentrality isn't but weighted is
+	 - Graph alignment algorithm? Needs to not have missing data, so could do Mantel on network to network
+
+
+
+4.5.23 - Grace @ 3:30
+Questions: 
+ - graphs.py 
+	- Which measures are we most interested in?
+	- Can't do strong connctivity for undirected graphs (The raw correlation matrix): Strong and weak connectivity are properties of directed graphs dealing with direction
+		- For any two vertices u and v in the graph, there is a directed path from u to v and a directed path from v to u.
+		- A directed graph is weakly connected if there is a path between every pair of vertices when we ignore the direction of edges. 
+		- Need directed edges to identify paths between vertices 
+
+	- Revisit
+
+
+
+
+
+
+	- Some measures require all positive number. What do you normally use when working with correlation matrices?
+		- How close all of the nodes are. Connected maximally versus segregated -> In brains, segregation because save resources 
+		- Atlanta and hong kong anticorrelated, but doesn't reflect that there not connected, different states
+		- Absolute values and positive only
+		
+		
+		
+		- Take negative out, run positive, then run negative
+	
+	
+ - Between graph
+	- networkx has louivain on positive louvian generates modularity
+	- Limit it to 10 modules
+	- Louivan abs val or pos vals: abs value 
+	- Threshold value: values above 0.6
+	- R value of 0.6 ~= values above 0.6
+	
+	
+	- Degree centrality seems unimportant since all matrices have the same connectivity 
+		- Weighted degree centrality is easiest
+		- Rerun degree centrality with positive only matrix 
+		- Fisher z transform -> standardized values, unitless, size reflects how close they are to mean 
+		- std dve 2.5 = p < 0.05
+
+ - Library for repeated measures ANOVA 
+ 
+ 
+ 
+ nilearn good for brain and imaging stuff 
+ classification of hba1c...
+ Partial variation e.g. age
+ Classification: Linear support vector classifications
+ ROI to ROI then 
+ Train on 20 Test on 80
+ 
+ 
+  - Linear mixed effects model 
+	- Is it "linear mixed effects model" or "mixed effects model" 
+	- Does this take the raw matrices?
+
+
+	- Mixed effect model vs linear mixed effect model 
+		- If data non normal 
+		- Does the model fits the data 
+		- Graph as scatter plot
+		- Graph line from model 
+		- If data clearly quadratic, 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

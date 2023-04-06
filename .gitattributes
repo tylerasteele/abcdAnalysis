@@ -1,0 +1,5 @@
+old/mrirscor02.txt filter=lfs diff=lfs merge=lfs -text
+old/rs.csv filter=lfs diff=lfs merge=lfs -text
+data/mriRScor.csv filter=lfs diff=lfs merge=lfs -text
+old/fullOutput.json filter=lfs diff=lfs merge=lfs -text
+old/j.json filter=lfs diff=lfs merge=lfs -text
